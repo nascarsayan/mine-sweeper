@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext } from 'preact/hooks';
+import { Router } from 'preact-router';
 
 import './app.css'
 import { createContext } from 'preact';
@@ -10,8 +11,12 @@ type Cell = {
   isFlagged: boolean
 }
 
+type PathProps = {
+  path: string
+}
+
 // MineSweeper is a JSX component
-function MineSweeper() {
+function MineSweeper(_: PathProps) {
   const [board, setBoard] = useState<Array<Array<Cell>>>([])
 
   const [isGameDone, setIsGameDone] = useState<boolean>(false)
@@ -245,6 +250,11 @@ function MineSweeper() {
           )
         )
       }
+      <button onClick={createBoard}>Restart</button>
+      <button>
+        <a href="/">Go Home</a>
+      </button>
+
     </>
   )
 }
@@ -267,7 +277,7 @@ const GameSettingsContext = createContext<GameSettings>({
   setDifficulty: (_: Difficulty) => { },
 });
 
-function Home() {
+function Home(_: PathProps) {
 
   const { rows, cols, difficulty, setRows, setCols, setDifficulty } =
     useContext<GameSettings>(GameSettingsContext);
@@ -296,7 +306,9 @@ function Home() {
           <option value="medium" >Medium</option>
           <option value="hard" >Hard</option>
         </select>
-
+        <button>
+          <a href="/game">Start Game</a>
+        </button>
       </form>
     </>
   )
@@ -327,8 +339,10 @@ export function App() {
   return (
     <div id="app">
       <GameSettingsContext.Provider value={value}>
-        <Home/>
-        <MineSweeper/>
+        <Router>
+          <Home path="/" />
+          <MineSweeper path="/game" />
+        </Router>
       </GameSettingsContext.Provider>
     </div>
   )
