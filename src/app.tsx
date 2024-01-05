@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useContext } from 'preact/hooks';
 
 import './app.css'
+import { createContext } from 'preact';
 
 type Cell = {
   isMine: boolean
@@ -9,17 +10,14 @@ type Cell = {
   isFlagged: boolean
 }
 
-type MineSweeperProps = {
-  numRows: number
-  numCols: number
-  difficulty: Difficulty
-}
-
 // MineSweeper is a JSX component
-function MineSweeper({ numRows, numCols, difficulty }: MineSweeperProps) {
+function MineSweeper() {
   const [board, setBoard] = useState<Array<Array<Cell>>>([])
 
   const [isGameDone, setIsGameDone] = useState<boolean>(false)
+
+  const { rows: numRows, cols: numCols, difficulty } =
+    useContext<GameSettings>(GameSettingsContext);
 
   useEffect(() => {
     createBoard()
@@ -251,21 +249,32 @@ function MineSweeper({ numRows, numCols, difficulty }: MineSweeperProps) {
   )
 }
 
-enum Difficulty {
-  easy = "easy",
-  medium = "medium",
-  hard = "hard"
+interface GameSettings {
+  rows: number;
+  cols: number;
+  difficulty: string;
+  setRows: (rows: number) => void;
+  setCols: (cols: number) => void;
+  setDifficulty: (difficulty: Difficulty) => void;
 }
 
-export function App() {
+const GameSettingsContext = createContext<GameSettings>({
+  rows: 4,
+  cols: 6,
+  difficulty: 'easy',
+  setRows: (_: number) => { },
+  setCols: (_: number) => { },
+  setDifficulty: (_: Difficulty) => { },
+});
 
-  const [rows, setRows] = useState<number>(4)
-  const [cols, setCols] = useState<number>(6)
+function Home() {
 
-  const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.easy)
+  const { rows, cols, difficulty, setRows, setCols, setDifficulty } =
+    useContext<GameSettings>(GameSettingsContext);
 
   return (
-    <div id="app">
+    <>
+      <h2>MineSweeper</h2>
       <form class="board-form">
         <input type="number" value={rows} id="user-rows" onChange={
           (event) => setRows(parseInt(event.currentTarget.value))
@@ -282,14 +291,45 @@ export function App() {
           onChange={
             (event) => setDifficulty(event.currentTarget.value as Difficulty)
           }
-          >
+        >
           <option value="easy" >Easy</option>
           <option value="medium" >Medium</option>
           <option value="hard" >Hard</option>
         </select>
 
       </form>
-      <MineSweeper numRows={rows} numCols={cols} difficulty={difficulty} />
+    </>
+  )
+}
+
+enum Difficulty {
+  easy = "easy",
+  medium = "medium",
+  hard = "hard"
+}
+
+export function App() {
+
+  const [rows, setRows] = useState<number>(4)
+  const [cols, setCols] = useState<number>(6)
+
+  const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.easy)
+
+  const value = {
+    rows,
+    cols,
+    difficulty,
+    setRows: setRows,
+    setCols: setCols,
+    setDifficulty: setDifficulty,
+  };
+
+  return (
+    <div id="app">
+      <GameSettingsContext.Provider value={value}>
+        <Home/>
+        <MineSweeper/>
+      </GameSettingsContext.Provider>
     </div>
   )
 }
